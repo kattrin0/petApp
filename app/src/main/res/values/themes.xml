@@ -1,5 +1,15 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+
+
+        <item name="android:windowBackground">@drawable/screensaver</item>
+        <item name="android:windowFullscreen">true</item>
+
+        <item name="postSplashScreenTheme">@style/Base.Theme.TetstViews</item>
+
+    </style>
+
     <style name="Base.Theme.TetstViews" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
