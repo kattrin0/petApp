@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:itemIconTint= "@color/white"
+        app:itemHorizontalTranslationEnabled="false"
+        android:background="@color/greenPrimary"
+        app:labelVisibilityMode="unlabeled"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:menu="@menu/bottom_nav_menu"
+        />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragmentContainerView"
+        android:name="androidx.navigation.fragment.NavHostFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:defaultNavHost="true"
+
+        app:layout_constraintBottom_toTopOf="@+id/bottomNavigation"
+
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:navGraph="@navigation/nav_fragment" />
+
+    <!-- <TextView
+         android:id="@+id/tvSomeText"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:fontFamily="@font/opensans_regular"
+         android:textSize = "25sp"
+         android:textStyle="bold"
+         android:text="Some Text"
+         app:layout_constraintBottom_toTopOf="@+id/bottomNavigation"
+         app:layout_constraintEnd_toEndOf="parent"
+         app:layout_constraintStart_toStartOf="parent"
+         app:layout_constraintTop_toBottomOf="@+id/topBar" />
+
+     <Button
+         android:id="@+id/btnNumber1"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:text="push me"
+         app:layout_constraintBottom_toTopOf="@+id/bottomNavigation"
+         app:layout_constraintEnd_toEndOf="parent"
+         app:layout_constraintStart_toStartOf="parent"
+         app:layout_constraintTop_toBottomOf="@+id/tvSomeText" />
+
+     <Button
+         android:id="@+id/btnNumber2"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:text="reset"
+         app:layout_constraintBottom_toTopOf="@+id/tvSomeText"
+         app:layout_constraintEnd_toEndOf="parent"
+         app:layout_constraintStart_toStartOf="parent"
+         app:layout_constraintTop_toBottomOf="@+id/topBar" />
+
+     <TextView
+
+         android:id="@+id/testText"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:fontFamily="@font/opensans_regular"
+         android:textSize = "20sp"
+         android:textStyle="bold"
+         android:text="for test"
+         app:layout_constraintBottom_toBottomOf="@+id/btnNumber1"
+         app:layout_constraintEnd_toStartOf="@+id/btnNumber1"
+         app:layout_constraintStart_toStartOf="parent"
+         app:layout_constraintTop_toTopOf="@+id/btnNumber1"
+         android:visibility="invisible"/>
+
+
+
+
+
+
+
+     <FrameLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@color/greenPrimary"
+        >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="4">
+
+            <TextView
+                android:id="@+id/centerText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:fontFamily="@font/opensans_italic"
+                android:gravity="center"
+                android:padding="12dp"
+                android:text="Profile"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
+
+                app:layout_constraintEnd_toStartOf="@+id/rightIcon"
+                app:layout_constraintStart_toStartOf="parent"
+
+                tools:ignore="MissingConstraints" />
+
+            <ImageView
+                android:layout_weight="1"
+                android:id="@+id/rightIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:src="@drawable/ic_notifications"
+                app:tint ="@color/white"
+                />
+
+        </LinearLayout>
+    </FrameLayout>
+ -->
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

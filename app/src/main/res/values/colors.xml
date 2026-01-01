@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="greenPrimary">#697255</color>
+    <color name="greenPrimary01">#CB63836B</color>
+    <color name="green01">#568263</color>
+    <color name="blackPrimary">#242424</color>
+    <color name="orangeLight">#B66D4C</color>
+    <color name="orangeDark">#8C5B3D</color>
+    <color name="beige">#FFF1DE</color>
+
+    <color name="greyPrimary">#F5F5F5</color>
+    <color name="grey">#666666</color>
+
+    <color name="greenTestPrimary">#63836B</color>
+
+
+
+
+</resources>
