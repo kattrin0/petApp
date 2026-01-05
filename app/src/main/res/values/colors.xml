@@ -10,10 +10,12 @@
     <color name="orangeDark">#8C5B3D</color>
     <color name="beige">#FFF1DE</color>
 
-    <color name="greyPrimary">#F5F5F5</color>
+    <color name="greyTestPrimary">#F5F5F5</color>
     <color name="grey">#666666</color>
-
+    <color name="greyPrimary">#ecebeb</color>
     <color name="greenTestPrimary">#63836B</color>
+    <color name="greenTest100Primary">#7a8a50</color>
+
 
 
 

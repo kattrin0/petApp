@@ -94,7 +94,9 @@
                 app:boxCornerRadiusBottomEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp">
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxBackgroundColor="@android:color/white"
+                app:boxStrokeColor="@color/orangeLight">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPetName"
@@ -102,6 +104,7 @@
                     android:layout_height="wrap_content"
                     android:drawableStart="@drawable/ic_paw"
                     android:drawablePadding="8dp"
+
                     android:hint="Кличка питомца"
                     android:inputType="textPersonName"
                     android:maxLines="1" />
@@ -117,7 +120,9 @@
                 app:boxCornerRadiusBottomEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp">
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxBackgroundColor="@android:color/white"
+                app:boxStrokeColor="@color/orangeLight">
 
                 <AutoCompleteTextView
                     android:id="@+id/actvBreed"
@@ -126,7 +131,8 @@
                     android:drawableStart="@drawable/ic_paw"
                     android:drawablePadding="8dp"
                     android:hint="Порода"
-                    android:inputType="none" />
+                    android:inputType="none"
+                    />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -188,7 +194,10 @@
                 app:boxCornerRadiusBottomEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp">
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxBackgroundColor="@android:color/white"
+
+                 >
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etBirthDate"
@@ -214,7 +223,9 @@
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp"
-                app:suffixText="кг">
+                app:suffixText="кг"
+                app:boxBackgroundColor="@android:color/white"
+                app:boxStrokeColor="@color/orangeLight">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etWeight"
@@ -248,7 +259,9 @@
                 app:boxCornerRadiusBottomEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp">
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxBackgroundColor="@android:color/white"
+                app:boxStrokeColor="@color/orangeLight">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etColor"
@@ -271,7 +284,9 @@
                 app:boxCornerRadiusBottomEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp">
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxBackgroundColor="@android:color/white"
+                app:boxStrokeColor="@color/orangeLight">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etChipNumber"
@@ -307,7 +322,9 @@
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp"
                 app:counterEnabled="true"
-                app:counterMaxLength="500">
+                app:counterMaxLength="500"
+                app:boxBackgroundColor="@android:color/white"
+                app:boxStrokeColor="@color/orangeLight">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etNotes"
