@@ -4,7 +4,6 @@
     <item
         android:id="@+id/homeFragment"
         android:icon="@drawable/ic_home"
-        android:color="@color/black"
         tools:ignore="MenuTitle"
         />
 
@@ -12,20 +11,16 @@
 
         android:id="@+id/calendarFragment"
         android:icon="@drawable/ic_calendar"
-        android:color="@color/black"
         tools:ignore="MenuTitle" />
     <item
 
         android:id="@+id/mapFragment"
         android:icon="@drawable/ic_map"
-        android:color="@color/black"
         tools:ignore="MenuTitle" />
     <item
         android:id="@+id/profileFragment"
         android:icon="@drawable/ic_person"
-        android:color="@color/black"
         tools:ignore="MenuTitle"
         />
 
-    <!-- добавьте остальные пункты -->
 </menu>

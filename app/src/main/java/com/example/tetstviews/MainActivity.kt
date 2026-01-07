@@ -1,6 +1,8 @@
 package com.example.tetstviews
 
 import android.app.AlertDialog
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -30,13 +32,28 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+import androidx.appcompat.app.AppCompatDelegate
+
+import java.util.*
+
 class MainActivity : AppCompatActivity() {
     private lateinit var mapView: MapView
     private lateinit var toolbar: Toolbar
 
 
 
+    private lateinit var themePrefs: SharedPreferences
+
+    companion object {
+        private const val THEME_PREFS = "theme_prefs"
+        private const val KEY_THEME_MODE = "theme_mode"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        themePrefs = getSharedPreferences(THEME_PREFS, Context.MODE_PRIVATE)
+        applyTheme(themePrefs.getInt(KEY_THEME_MODE, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM))
+
+        installSplashScreen()
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -63,8 +80,8 @@ class MainActivity : AppCompatActivity() {
         // Обработчик нажатия на элементы меню
         toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.action_notifications -> {
-                    showTodayEventsDialog()
+                R.id.action_settings -> {
+                    showThemeDialog()
                     true
                 }
                 else -> false
@@ -84,6 +101,34 @@ class MainActivity : AppCompatActivity() {
                 toolbar.title = label
             }
         }
+    }
+    private fun applyTheme(mode: Int) {
+        AppCompatDelegate.setDefaultNightMode(mode)
+    }
+
+    private fun showThemeDialog() {
+        val themes = arrayOf("Светлая тема", "Тёмная тема")
+        val themeModes = arrayOf(
+            AppCompatDelegate.MODE_NIGHT_NO,
+            AppCompatDelegate.MODE_NIGHT_YES,
+            AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        )
+
+        val currentMode = themePrefs.getInt(KEY_THEME_MODE, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        var selectedIndex = themeModes.indexOf(currentMode).coerceAtLeast(0)
+
+        AlertDialog.Builder(this)
+            .setTitle("Выберите тему")
+            .setSingleChoiceItems(themes, selectedIndex) { _, which ->
+                selectedIndex = which
+            }
+            .setPositiveButton("Применить") { _, _ ->
+                val newMode = themeModes[selectedIndex]
+                themePrefs.edit().putInt(KEY_THEME_MODE, newMode).apply()
+                applyTheme(newMode)
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
     }
 
     private fun showTodayEventsDialog() {

@@ -1,54 +1,50 @@
 package com.example.tetstviews
 
+import android.Manifest
+import android.app.DatePickerDialog
+import android.content.Context
+import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-
-
-import android.Manifest
-import android.app.Activity
-import android.app.DatePickerDialog
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
-
-import android.provider.MediaStore
-
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-
+import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
-import android.content.Context
-import android.content.SharedPreferences
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import java.io.FileOutputStream
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-const val ARG_PARAM1 = "param1"
-const val ARG_PARAM2 = "param2"
-
-
+private const val PREFS_NAME = "pet_profile_prefs"
+private const val KEY_PET_NAME = "pet_name"
+private const val KEY_BREED = "pet_breed"
+private const val KEY_GENDER = "pet_gender"
+private const val KEY_BIRTH_DATE = "pet_birth_date"
+private const val KEY_WEIGHT = "pet_weight"
+private const val KEY_COLOR = "pet_color"
+private const val KEY_CHIP_NUMBER = "pet_chip_number"
+private const val KEY_STERILIZED = "pet_sterilized"
+private const val KEY_NOTES = "pet_notes"
+private const val KEY_PHOTO_PATH = "pet_photo_path"
 
 class ProfileFragment : Fragment() {
 
-    // UI элементы
+    // === UI: редактируемые элементы ===
     private lateinit var ivPetPhoto: ImageView
     private lateinit var ivPlaceholder: ImageView
-
     private lateinit var tvAddPhoto: TextView
     private lateinit var etPetName: TextInputEditText
     private lateinit var actvBreed: AutoCompleteTextView
@@ -63,107 +59,90 @@ class ProfileFragment : Fragment() {
     private lateinit var etNotes: TextInputEditText
     private lateinit var btnSave: MaterialButton
 
-    private lateinit var sharedPreferences: SharedPreferences
+    // === UI: статичные элементы (режим просмотра) ===
+    private lateinit var llProfileEditable: LinearLayout
+    private lateinit var llProfileReadonly: LinearLayout
+    private lateinit var btnEdit: MaterialButton
+    private lateinit var tvReadonlyName: TextView
+    private lateinit var tvReadonlyBreed: TextView
+    private lateinit var tvReadonlyGender: TextView
+    private lateinit var tvReadonlyBirth: TextView
+    private lateinit var tvReadonlyWeight: TextView
+    private lateinit var tvReadonlyColor: TextView
+    private lateinit var tvReadonlyChip: TextView
+    private lateinit var tvReadonlySterilized: TextView
+    private lateinit var tvReadonlyNotes: TextView
+    private lateinit var llReadonlyChip: LinearLayout
+    private lateinit var llReadonlyNotes: LinearLayout
 
+    // === Данные и логика ===
+    private lateinit var sharedPreferences: SharedPreferences
     private var currentPhotoUri: Uri? = null
     private var savedPhotoPath: String? = null
 
-    companion object {
-        private const val PREFS_NAME = "pet_profile_prefs"
-        private const val KEY_PET_NAME = "pet_name"
-        private const val KEY_BREED = "pet_breed"
-        private const val KEY_GENDER = "pet_gender"
-        private const val KEY_BIRTH_DATE = "pet_birth_date"
-        private const val KEY_WEIGHT = "pet_weight"
-        private const val KEY_COLOR = "pet_color"
-        private const val KEY_CHIP_NUMBER = "pet_chip_number"
-        private const val KEY_STERILIZED = "pet_sterilized"
-        private const val KEY_NOTES = "pet_notes"
-        private const val KEY_PHOTO_PATH = "pet_photo_path"
-    }
-
-
+    // Список пород
     private val dogBreeds = listOf(
-        "Лабрадор-ретривер",
-        "Немецкая овчарка",
-        "Золотистый ретривер",
-        "Французский бульдог",
-        "Бульдог",
-        "Пудель",
-        "Бигль",
-        "Ротвейлер",
-        "Такса",
-        "Йоркширский терьер",
-        "Боксёр",
-        "Сибирский хаски",
-        "Кавалер-кинг-чарльз-спаниель",
-        "Доберман",
-        "Шпиц",
-        "Чихуахуа",
-        "Корги",
-        "Мопс",
-        "Шелти",
-        "Акита-ину",
-        "Метис",
-        "Другая"
+        "Лабрадор-ретривер", "Немецкая овчарка", "Золотистый ретривер", "Французский бульдог",
+        "Бульдог", "Пудель", "Бигль", "Ротвейлер", "Такса", "Йоркширский терьер",
+        "Боксёр", "Сибирский хаски", "Кавалер-кинг-чарльз-спаниель", "Доберман",
+        "Шпиц", "Чихуахуа", "Корги", "Мопс", "Шелти", "Акита-ину", "Метис", "Другая"
     )
 
+    // Лончеры
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let { saveImageToInternalStorage(it) }
+    }
 
-    private val pickImageLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            saveImageToInternalStorage(it)
-        }
+    private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success: Boolean ->
+        if (success) currentPhotoUri?.let { saveImageToInternalStorage(it) }
+    }
+
+    private val requestCameraPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+        if (isGranted) openCamera() else showSnackbar("Для съёмки фото необходимо разрешение камеры")
     }
 
 
-    private val takePictureLauncher = registerForActivityResult(
-        ActivityResultContracts.TakePicture()
-    ) { success: Boolean ->
-        if (success) {
-            currentPhotoUri?.let { uri ->
-                saveImageToInternalStorage(uri)
-            }
-        }
-    }
-
-
-    private val requestCameraPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            openCamera()
-        } else {
-            showSnackbar("Для съёмки фото необходимо разрешение камеры")
-        }
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_profile, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         sharedPreferences = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-
         initViews(view)
         setupBreedDropdown()
         setupClickListeners()
-
         loadSavedData()
+
+        // Устанавливаем начальное состояние
+        // Проверяем, есть ли сохраненные данные
+        val hasSavedData = !sharedPreferences.getString(KEY_PET_NAME, null).isNullOrBlank()
+
+        if (hasSavedData) {
+            // Если есть сохраненные данные - показываем режим просмотра
+            llProfileEditable.visibility = View.GONE
+            llProfileReadonly.visibility = View.VISIBLE
+            btnSave.visibility = View.GONE
+            btnEdit.visibility = View.VISIBLE
+            updateReadonlyView()
+        } else {
+            // Если данных нет - показываем режим редактирования
+            llProfileEditable.visibility = View.VISIBLE
+            llProfileReadonly.visibility = View.GONE
+            btnSave.visibility = View.VISIBLE
+            btnEdit.visibility = View.GONE
+        }
     }
 
+
     private fun initViews(view: View) {
+        // Изображение
         ivPetPhoto = view.findViewById(R.id.ivPetPhoto)
         ivPlaceholder = view.findViewById(R.id.ivPlaceholder)
-
         tvAddPhoto = view.findViewById(R.id.tvAddPhoto)
+
+        // Редактируемые поля
         etPetName = view.findViewById(R.id.etPetName)
         actvBreed = view.findViewById(R.id.actvBreed)
         rgGender = view.findViewById(R.id.rgGender)
@@ -176,36 +155,44 @@ class ProfileFragment : Fragment() {
         switchSterilized = view.findViewById(R.id.switchSterilized)
         etNotes = view.findViewById(R.id.etNotes)
         btnSave = view.findViewById(R.id.btnSave)
+
+        // Группы
+        llProfileEditable = view.findViewById(R.id.llProfileEditable)
+        llProfileReadonly = view.findViewById(R.id.llProfileReadonly)
+        btnEdit = view.findViewById(R.id.btnEdit)
+
+        // Статичные TextView
+        tvReadonlyName = view.findViewById(R.id.tvNameRead)
+        tvReadonlyBreed = view.findViewById(R.id.tvBreedRead)
+        tvReadonlyGender = view.findViewById(R.id.tvGenderRead)
+        tvReadonlyBirth = view.findViewById(R.id.tvBirthRead)
+        tvReadonlyWeight = view.findViewById(R.id.tvWeightRead)
+        tvReadonlyColor = view.findViewById(R.id.tvReadonlyColor)
+        tvReadonlyChip = view.findViewById(R.id.tvReadonlyChip)
+        tvReadonlySterilized = view.findViewById(R.id.tvReadonlySterilized)
+        tvReadonlyNotes = view.findViewById(R.id.tvReadonlyNotes)
+        //llReadonlyChip = view.findViewById(R.id.llReadonlyChip)
+        llReadonlyNotes = view.findViewById(R.id.llReadonlyNotes)
     }
 
     private fun setupBreedDropdown() {
-        val adapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_dropdown_item_1line,
-            dogBreeds
-        )
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, dogBreeds)
         actvBreed.setAdapter(adapter)
     }
 
     private fun setupClickListeners() {
-
         ivPetPhoto.setOnClickListener { showImagePickerDialog() }
-
         ivPlaceholder.setOnClickListener { showImagePickerDialog() }
-
-
+        tvAddPhoto.setOnClickListener { showImagePickerDialog() }
         etBirthDate.setOnClickListener { showDatePicker() }
-
-
         btnSave.setOnClickListener { savePetProfile() }
+        btnEdit.setOnClickListener { toggleEditMode() }
     }
 
-
-//     Загрузка сохранённых данных из SharedPreferences
+    // ==================== ДАННЫЕ ====================
 
     private fun loadSavedData() {
         with(sharedPreferences) {
-            // текстовые поля
             getString(KEY_PET_NAME, null)?.let { etPetName.setText(it) }
             getString(KEY_BREED, null)?.let { actvBreed.setText(it, false) }
             getString(KEY_BIRTH_DATE, null)?.let { etBirthDate.setText(it) }
@@ -214,16 +201,13 @@ class ProfileFragment : Fragment() {
             getString(KEY_CHIP_NUMBER, null)?.let { etChipNumber.setText(it) }
             getString(KEY_NOTES, null)?.let { etNotes.setText(it) }
 
-            //  пол
             when (getString(KEY_GENDER, null)) {
                 "male" -> rbMale.isChecked = true
                 "female" -> rbFemale.isChecked = true
             }
 
-
             switchSterilized.isChecked = getBoolean(KEY_STERILIZED, false)
 
-            // фото
             getString(KEY_PHOTO_PATH, null)?.let { path ->
                 savedPhotoPath = path
                 loadPhotoFromPath(path)
@@ -231,8 +215,114 @@ class ProfileFragment : Fragment() {
         }
     }
 
+    private fun savePetProfile() {
+        val name = etPetName.text?.toString()?.trim() ?: ""
+        val breed = actvBreed.text.toString().trim()
+        val gender = when {
+            rbMale.isChecked -> "male"
+            rbFemale.isChecked -> "female"
+            else -> ""
+        }
+        val birthDate = etBirthDate.text?.toString()?.trim() ?: ""
+        val weight = etWeight.text?.toString()?.trim() ?: ""
+        val color = etColor.text?.toString()?.trim() ?: ""
+        val chip = etChipNumber.text?.toString()?.trim() ?: ""
+        val sterilized = switchSterilized.isChecked
+        val notes = etNotes.text?.toString()?.trim() ?: ""
 
-//   Загрузка фото из внутреннего хранилища
+        if (name.isEmpty()) {
+            showSnackbar("Укажите имя питомца")
+            return
+        }
+
+        with(sharedPreferences.edit()) {
+            putString(KEY_PET_NAME, name)
+            putString(KEY_BREED, breed)
+            putString(KEY_GENDER, gender)
+            putString(KEY_BIRTH_DATE, birthDate)
+            putString(KEY_WEIGHT, weight)
+            putString(KEY_COLOR, color)
+            putString(KEY_CHIP_NUMBER, chip)
+            putBoolean(KEY_STERILIZED, sterilized)
+            putString(KEY_NOTES, notes)
+            putString(KEY_PHOTO_PATH, savedPhotoPath)
+            apply()
+        }
+
+        showSnackbar("Профиль питомца сохранён!")
+        toggleEditMode() // → переключаемся в просмотр
+    }
+
+    // ==================== ФОТО ====================
+
+    private fun showImagePickerDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Выберите источник")
+            .setItems(arrayOf("Галерея", "Камера")) { _, which ->
+                when (which) {
+                    0 -> pickImageLauncher.launch("image/*")
+                    1 -> {
+                        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+                            == PackageManager.PERMISSION_GRANTED
+                        ) {
+                            openCamera()
+                        } else {
+                            requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun openCamera() {
+        try {
+            val photoFile = createImageFile()
+            currentPhotoUri = FileProvider.getUriForFile(
+                requireContext(),
+                "${requireContext().packageName}.fileprovider",
+                photoFile
+            )
+            takePictureLauncher.launch(currentPhotoUri)
+        } catch (e: IOException) {
+            e.printStackTrace()
+            showSnackbar("Не удалось создать файл для фото")
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun createImageFile(): File {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageDir = requireContext().getExternalFilesDir(null)
+        return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
+    }
+
+    private fun saveImageToInternalStorage(uri: Uri) {
+        try {
+            requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
+                val bitmap = BitmapFactory.decodeStream(inputStream) ?: return
+
+                savedPhotoPath?.let { oldPath ->
+                    File(oldPath).takeIf { it.exists() }?.delete()
+                }
+
+                val filename = "pet_photo_${System.currentTimeMillis()}.jpg"
+                val file = File(requireContext().filesDir, filename)
+                FileOutputStream(file).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                }
+                savedPhotoPath = file.absolutePath
+
+                ivPetPhoto.setImageBitmap(bitmap)
+                ivPlaceholder.visibility = View.GONE
+                tvAddPhoto.text = "Нажмите, чтобы изменить фото"
+                showSnackbar("Фото добавлено")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showSnackbar("Ошибка при сохранении фото")
+        }
+    }
 
     private fun loadPhotoFromPath(path: String) {
         try {
@@ -250,192 +340,112 @@ class ProfileFragment : Fragment() {
         }
     }
 
+    // ==================== UI: РЕДАКТИРОВАНИЕ / ПРОСМОТР ====================
 
-//     Сохранение изображения во внутреннее хранилище приложения
+    private fun toggleEditMode() {
+        val isCurrentlyEditing = llProfileEditable.visibility == View.VISIBLE
 
-    private fun saveImageToInternalStorage(uri: Uri) {
-        try {
-            val inputStream = requireContext().contentResolver.openInputStream(uri)
-            val bitmap = BitmapFactory.decodeStream(inputStream)
-            inputStream?.close()
+        if (isCurrentlyEditing) {
+            // Переключаемся в режим просмотра
+            llProfileEditable.visibility = View.GONE
+            llProfileReadonly.visibility = View.VISIBLE
+            // Кнопки снаружи групп - управляем ими отдельно
+            btnSave.visibility = View.GONE
+            btnEdit.visibility = View.VISIBLE
+            updateReadonlyView()
+        } else {
+            // Переключаемся в режим редактирования
+            llProfileEditable.visibility = View.VISIBLE
+            llProfileReadonly.visibility = View.GONE
+            btnSave.visibility = View.VISIBLE
+            btnEdit.visibility = View.GONE
+        }
+    }
 
-            if (bitmap != null) {
-                savedPhotoPath?.let { oldPath ->
-                    try {
-                        File(oldPath).delete()
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+    private fun updateReadonlyView() {
+        val p = sharedPreferences
+        val name = p.getString(KEY_PET_NAME, "") ?: ""
+        val breed = p.getString(KEY_BREED, "") ?: ""
+        val gender = when (p.getString(KEY_GENDER, "")) {
+            "male" -> "Мальчик"
+            "female" -> "Девочка"
+            else -> "—"
+        }
+        val birthDateStr = p.getString(KEY_BIRTH_DATE, null)
+        val weight = p.getString(KEY_WEIGHT, "").let { it!!.ifEmpty { "—" } }
+        val color = p.getString(KEY_COLOR, "") ?: ""
+        val chip = p.getString(KEY_CHIP_NUMBER, null)
+        val sterilized = if (p.getBoolean(KEY_STERILIZED, false)) "Да" else "Нет"
+        val notes = p.getString(KEY_NOTES, "").takeIf { it!!.isNotBlank() }
+
+        tvReadonlyName.text = if (name.isNotEmpty()) "Имя: $name" else "Имя: —"
+        tvReadonlyBreed.text = if (breed.isNotEmpty()) "Порода: $breed" else "Порода: —"
+        tvReadonlyGender.text = "Пол: $gender"
+        tvReadonlySterilized.text = "Стерилизация: $sterilized"
+        tvReadonlyWeight.text = "Вес: ${if (weight == "—") "—" else "$weight кг"}"
+        tvReadonlyColor.text = if (color.isNotEmpty()) "Окрас: $color" else "Окрас: —"
+
+        // Дата + возраст
+        val birthText = if (!birthDateStr.isNullOrEmpty()) {
+            try {
+                val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+                val birth = sdf.parse(birthDateStr)
+                if (birth != null) {
+                    val now = Calendar.getInstance()
+                    val birthCal = Calendar.getInstance().apply { time = birth }
+                    var age = now.get(Calendar.YEAR) - birthCal.get(Calendar.YEAR)
+                    if (now.get(Calendar.DAY_OF_YEAR) < birthCal.get(Calendar.DAY_OF_YEAR)) age--
+                    val ageWord = when {
+                        age % 10 == 1 && age % 100 != 11 -> "год"
+                        age % 10 in 2..4 && age % 100 !in 12..14 -> "года"
+                        else -> "лет"
                     }
+                    "Дата рождения: $birthDateStr ($age $ageWord)"
+                } else {
+                    "Дата рождения: $birthDateStr"
                 }
-
-
-                val filename = "pet_photo_${System.currentTimeMillis()}.jpg"
-                val file = File(requireContext().filesDir, filename)
-
-                val outputStream = FileOutputStream(file)
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
-                outputStream.flush()
-                outputStream.close()
-
-
-                savedPhotoPath = file.absolutePath
-
-
-                sharedPreferences.edit().putString(KEY_PHOTO_PATH, savedPhotoPath).apply()
-
-
-                ivPetPhoto.setImageBitmap(bitmap)
-                ivPlaceholder.visibility = View.GONE
-                tvAddPhoto.text = "Нажмите, чтобы изменить фото"
-
-                showSnackbar("Фото добавлено")
+            } catch (e: Exception) {
+                "Дата рождения: $birthDateStr"
             }
-        } catch (e: IOException) {
-            e.printStackTrace()
-            showSnackbar("Ошибка при сохранении фото")
+        } else "Дата рождения: —"
+        tvReadonlyBirth.text = birthText
+
+        // Чип
+        if (!chip.isNullOrEmpty()) {
+            tvReadonlyChip.text = "Чип: №$chip"
+            tvReadonlyChip.visibility = View.VISIBLE
+        } else {
+            tvReadonlyChip.visibility = View.GONE
+        }
+
+        // Заметки
+        if (!notes.isNullOrEmpty()) {
+            tvReadonlyNotes.text = notes
+            llReadonlyNotes.visibility = View.VISIBLE
+        } else {
+            llReadonlyNotes.visibility = View.GONE
         }
     }
-
-    private fun showImagePickerDialog() {
-        val options = arrayOf("Сделать фото", "Выбрать из галереи")
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Добавить фото питомца")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> checkCameraPermissionAndOpen()
-                    1 -> openGallery()
-                }
-            }
-            .show()
-    }
-
-    private fun checkCameraPermissionAndOpen() {
-        when {
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                openCamera()
-            }
-
-            else -> {
-                requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-            }
-        }
-    }
-
-    private fun openCamera() {
-        val photoFile = createImageFile()
-        photoFile?.let {
-            currentPhotoUri = FileProvider.getUriForFile(
-                requireContext(),
-                "${requireContext().packageName}.provider",
-                it
-            )
-            takePictureLauncher.launch(currentPhotoUri)
-        }
-    }
-
-    private fun createImageFile(): File? {
-        return try {
-            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val storageDir = requireContext().cacheDir
-            File.createTempFile("PET_${timeStamp}_", ".jpg", storageDir)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    private fun openGallery() {
-        pickImageLauncher.launch("image/*")
-    }
+    // ==================== ВСПОМОГАТЕЛЬНОЕ ====================
 
     private fun showDatePicker() {
         val calendar = Calendar.getInstance()
-
-        // Если дата уже выбрана, парсим её
-        val currentText = etBirthDate.text.toString()
-        if (currentText.isNotEmpty()) {
-            try {
-                val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-                val date = dateFormat.parse(currentText)
-                date?.let { calendar.time = it }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-
-        val datePickerDialog = DatePickerDialog(
+        DatePickerDialog(
             requireContext(),
             { _, year, month, dayOfMonth ->
-                val selectedDate = Calendar.getInstance()
-                selectedDate.set(year, month, dayOfMonth)
-
-                val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-                etBirthDate.setText(dateFormat.format(selectedDate.time))
+                val selectedDate = Calendar.getInstance().apply {
+                    set(year, month, dayOfMonth)
+                }
+                val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+                etBirthDate.setText(sdf.format(selectedDate.time))
             },
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
-        )
-
-        // Ограничиваем выбор даты до сегодняшнего дня
-        datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
-        datePickerDialog.show()
-    }
-
-    private fun savePetProfile() {
-        // Валидация обязательных полей
-        val name = etPetName.text.toString().trim()
-        val breed = actvBreed.text.toString().trim()
-
-        if (name.isEmpty()) {
-            etPetName.error = "Введите кличку питомца"
-            etPetName.requestFocus()
-            return
-        }
-
-        if (breed.isEmpty()) {
-            actvBreed.error = "Выберите породу"
-            actvBreed.requestFocus()
-            return
-        }
-
-        if (rgGender.checkedRadioButtonId == -1) {
-            showSnackbar("Выберите пол питомца")
-            return
-        }
-
-
-        val gender = when (rgGender.checkedRadioButtonId) {
-            R.id.rbMale -> "male"
-            R.id.rbFemale -> "female"
-            else -> ""
-        }
-
-        // Сохраняем данные в SharedPreferences
-        with(sharedPreferences.edit()) {
-            putString(KEY_PET_NAME, name)
-            putString(KEY_BREED, breed)
-            putString(KEY_GENDER, gender)
-            putString(KEY_BIRTH_DATE, etBirthDate.text.toString().trim())
-            putString(KEY_WEIGHT, etWeight.text.toString().trim())
-            putString(KEY_COLOR, etColor.text.toString().trim())
-            putString(KEY_CHIP_NUMBER, etChipNumber.text.toString().trim())
-            putBoolean(KEY_STERILIZED, switchSterilized.isChecked)
-            putString(KEY_NOTES, etNotes.text.toString().trim())
-            savedPhotoPath?.let { putString(KEY_PHOTO_PATH, it) }
-            apply()
-        }
-
-        showSnackbar("Профиль питомца сохранён!")
+        ).show()
     }
 
     private fun showSnackbar(message: String) {
-        view?.let {
-            Snackbar.make(it, message, Snackbar.LENGTH_SHORT).show()
-        }
+        view?.let { Snackbar.make(it, message, Snackbar.LENGTH_SHORT).show() }
     }
 }

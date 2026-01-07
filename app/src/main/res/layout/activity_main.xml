@@ -25,6 +25,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:titleTextAppearance="@style/textToolbar"
+        app:itemIconTint= "@color/white"
         app:title="App"
         app:menu="@menu/toolbar_menu"/>
 

@@ -289,7 +289,7 @@
                     android:layout_height="48dp"
                     android:layout_weight="1"
                     android:backgroundTint="@color/greenPrimary"
-                    android:text="Маршрут"
+                    android:text="Перейти в карты"
                     app:cornerRadius="12dp"
                     app:icon="@drawable/ic_map" />
 

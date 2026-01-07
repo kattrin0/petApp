@@ -19,7 +19,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-
             <TextView
                 android:id="@+id/tvTitle"
                 android:layout_width="match_parent"
@@ -52,14 +51,12 @@
                         android:contentDescription="Фото питомца"
                         android:scaleType="centerCrop" />
 
-
                     <ImageView
                         android:id="@+id/ivPlaceholder"
                         android:layout_width="60dp"
                         android:layout_height="60dp"
                         android:layout_gravity="center"
                         android:contentDescription="Placeholder"
-
                         android:src="@drawable/ic_camera"
                         app:tint="#616161" />
 
@@ -76,281 +73,402 @@
                 android:textColor="#888888"
                 android:textSize="12sp" />
 
-            <TextView
+            <!-- === РЕЖИМ РЕДАКТИРОВАНИЯ (твой оригинальный интерфейс) === -->
+            <LinearLayout
+                android:id="@+id/llProfileEditable"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:text="Основная информация"
-                android:textColor="#333333"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:orientation="vertical">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilPetName"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxBackgroundColor="@android:color/white"
-                app:boxStrokeColor="@color/orangeLight">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etPetName"
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableStart="@drawable/ic_paw"
-                    android:drawablePadding="8dp"
+                    android:layout_marginBottom="12dp"
+                    android:text="Основная информация"
+                    android:textColor="#333333"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-                    android:hint="Кличка питомца"
-                    android:inputType="textPersonName"
-                    android:maxLines="1" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilBreed"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxBackgroundColor="@android:color/white"
-                app:boxStrokeColor="@color/orangeLight">
-
-                <AutoCompleteTextView
-                    android:id="@+id/actvBreed"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilPetName"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableStart="@drawable/ic_paw"
-                    android:drawablePadding="8dp"
-                    android:hint="Порода"
-                    android:inputType="none"
-                    />
+                    android:layout_marginBottom="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxBackgroundColor="@android:color/white"
+                    app:boxStrokeColor="@color/orangeLight">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPetName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:drawableStart="@drawable/ic_paw"
+                        android:drawablePadding="8dp"
+                        android:hint="Кличка питомца"
+                        android:inputType="textPersonName"
+                        android:maxLines="1" />
 
+                </com.google.android.material.textfield.TextInputLayout>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Пол"
-                android:textColor="#666666"
-                android:textSize="14sp" />
-
-            <RadioGroup
-                android:id="@+id/rgGender"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-
-                android:orientation="horizontal">
-
-                <RadioButton
-                    android:id="@+id/rbMale"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/radio_selector"
-                    android:button="@null"
-                    android:gravity="center"
-                    android:padding="12dp"
-                    android:text="Мальчик"
-
-                    android:textColor="@drawable/radio_text_selector" />
-
-                <View
-                    android:layout_width="8dp"
-                    android:layout_height="match_parent" />
-
-                <RadioButton
-                    android:id="@+id/rbFemale"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/radio_selector"
-                    android:button="@null"
-                    android:gravity="center"
-                    android:padding="12dp"
-                    android:text="Девочка"
-
-                    android:textColor="@drawable/radio_text_selector" />
-
-            </RadioGroup>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilBirthDate"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxBackgroundColor="@android:color/white"
-
-                 >
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etBirthDate"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilBreed"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:drawableStart="@drawable/ic_calendar1"
-                    android:drawablePadding="8dp"
-                    android:focusable="false"
-                    android:hint="Дата рождения"
-                    android:inputType="none" />
+                    android:layout_marginBottom="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxBackgroundColor="@android:color/white"
+                    app:boxStrokeColor="@color/orangeLight">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <AutoCompleteTextView
+                        android:id="@+id/actvBreed"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:drawableStart="@drawable/ic_paw"
+                        android:drawablePadding="8dp"
+                        android:hint="Порода"
+                        android:inputType="none" />
 
+                </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilWeight"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp"
-                app:suffixText="кг"
-                app:boxBackgroundColor="@android:color/white"
-                app:boxStrokeColor="@color/orangeLight">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etWeight"
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableStart="@drawable/ic_weight"
-                    android:drawablePadding="8dp"
-                    android:hint="Вес"
-                    android:inputType="numberDecimal"
-                    android:maxLines="1" />
+                    android:layout_marginBottom="8dp"
+                    android:text="Пол"
+                    android:textColor="#666666"
+                    android:textSize="14sp" />
 
-            </com.google.android.material.textfield.TextInputLayout>
-
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="12dp"
-                android:text="Дополнительная информация"
-                android:textColor="#333333"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilColor"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxBackgroundColor="@android:color/white"
-                app:boxStrokeColor="@color/orangeLight">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etColor"
+                <RadioGroup
+                    android:id="@+id/rgGender"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableStart="@drawable/ic_color"
-                    android:drawablePadding="8dp"
-                    android:hint="Окрас"
-                    android:inputType="text"
-                    android:maxLines="1" />
+                    android:layout_marginBottom="12dp"
+                    android:orientation="horizontal">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <RadioButton
+                        android:id="@+id/rbMale"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/radio_selector"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:padding="12dp"
+                        android:text="Мальчик"
+                        android:textColor="@drawable/radio_text_selector" />
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilChipNumber"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxBackgroundColor="@android:color/white"
-                app:boxStrokeColor="@color/orangeLight">
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="match_parent" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etChipNumber"
+                    <RadioButton
+                        android:id="@+id/rbFemale"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/radio_selector"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:padding="12dp"
+                        android:text="Девочка"
+                        android:textColor="@drawable/radio_text_selector" />
+
+                </RadioGroup>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilBirthDate"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableStart="@drawable/ic_chip"
-                    android:drawablePadding="8dp"
-                    android:hint="Номер чипа (если есть)"
-                    android:inputType="number"
-                    android:maxLines="1" />
+                    android:layout_marginBottom="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxBackgroundColor="@android:color/white">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etBirthDate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:drawableStart="@drawable/ic_calendar1"
+                        android:drawablePadding="8dp"
+                        android:focusable="false"
+                        android:hint="Дата рождения"
+                        android:inputType="none" />
 
+                </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchSterilized"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:padding="8dp"
-                android:text="Стерилизован/кастрирован"
-                app:thumbTint="@color/orangeLight"
-                android:textSize="14sp" />
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilNotes"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp"
-                app:counterEnabled="true"
-                app:counterMaxLength="500"
-                app:boxBackgroundColor="@android:color/white"
-                app:boxStrokeColor="@color/orangeLight">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etNotes"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilWeight"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableStart="@drawable/ic_notes"
-                    android:drawablePadding="8dp"
-                    android:gravity="top"
-                    android:hint="Особые заметки (аллергии, болезни и т.д.)"
-                    android:inputType="textMultiLine"
-                    android:minLines="3" />
+                    android:layout_marginBottom="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:suffixText="кг"
+                    app:boxBackgroundColor="@android:color/white"
+                    app:boxStrokeColor="@color/orangeLight">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etWeight"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:drawableStart="@drawable/ic_weight"
+                        android:drawablePadding="8dp"
+                        android:hint="Вес"
+                        android:inputType="numberDecimal"
+                        android:maxLines="1" />
 
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:text="Дополнительная информация"
+                    android:textColor="#333333"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilColor"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxBackgroundColor="@android:color/white"
+                    app:boxStrokeColor="@color/orangeLight">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etColor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:drawableStart="@drawable/ic_color"
+                        android:drawablePadding="8dp"
+                        android:hint="Окрас"
+                        android:inputType="text"
+                        android:maxLines="1" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilChipNumber"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxBackgroundColor="@android:color/white"
+                    app:boxStrokeColor="@color/orangeLight">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etChipNumber"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:drawableStart="@drawable/ic_chip"
+                        android:drawablePadding="8dp"
+                        android:hint="Номер чипа (если есть)"
+                        android:inputType="number"
+                        android:maxLines="1" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchSterilized"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:padding="8dp"
+                    android:text="Стерилизован/кастрирован"
+                    app:thumbTint="@color/orangeLight"
+                    android:textSize="14sp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilNotes"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:counterEnabled="true"
+                    app:counterMaxLength="500"
+                    app:boxBackgroundColor="@android:color/white"
+                    app:boxStrokeColor="@color/orangeLight">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etNotes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:drawableStart="@drawable/ic_notes"
+                        android:drawablePadding="8dp"
+                        android:gravity="top"
+                        android:hint="Особые заметки (аллергии, болезни и т.д.)"
+                        android:inputType="textMultiLine"
+                        android:minLines="3" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSave"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginBottom="16dp"
+                    android:text="Сохранить"
+                    android:textSize="16sp"
+                    app:cornerRadius="12dp"
+                    android:backgroundTint="@color/orangeLight" />
+
+            </LinearLayout>
+
+            <!--  РЕЖИМ ПРОСМОТРА  -->
+            <!-- === РЕЖИМ ПРОСМОТРА: текстовый формат "Поле: значение" === -->
+            <LinearLayout
+                android:id="@+id/llProfileReadonly"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card_rounded"
+                android:padding="20dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvNameRead"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Имя: Барбос"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/tvBreedRead"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Порода: Лабрадор-ретривер"
+                    android:textSize="16sp"
+                    android:textColor="#555555"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/tvGenderRead"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Пол: Мальчик"
+                    android:textSize="16sp"
+                    android:textColor="#555555"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/tvBirthRead"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Дата рождения: 12.05.2022 (2 года)"
+                    android:textSize="16sp"
+                    android:textColor="#555555"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/tvWeightRead"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Вес: 24.5 кг"
+                    android:textSize="16sp"
+                    android:textColor="#555555"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/tvReadonlyColor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Окрас: Чёрный с белым"
+                    android:textSize="16sp"
+                    android:textColor="#555555"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/tvReadonlyChip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Чип: №123456789"
+                    android:textSize="16sp"
+                    android:textColor="#555555"
+                    android:layout_marginBottom="8dp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvReadonlySterilized"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Стерилизация: Да"
+                    android:textSize="16sp"
+                    android:textColor="#555555"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Заметки (отдельный блок с заголовком) -->
+                <LinearLayout
+                    android:id="@+id/llReadonlyNotes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Особые заметки:"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/tvReadonlyNotes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Аллергия на курицу. Боится пылесоса."
+                        android:textSize="15sp"
+                        android:textColor="#666666"
+                        android:lineSpacingExtra="3dp" />
+
+
+                </LinearLayout>
+
+            </LinearLayout>
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSave"
+                android:id="@+id/btnEdit"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:layout_marginBottom="16dp"
-                android:text="Сохранить"
+                android:text="Изменить"
                 android:textSize="16sp"
                 app:cornerRadius="12dp"
-                android:backgroundTint="@color/orangeLight"/>
+                android:backgroundTint="@color/orangeLight" />
 
         </LinearLayout>
-
     </ScrollView>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

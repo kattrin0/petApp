@@ -80,7 +80,7 @@
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
                 android:backgroundTint="@color/greenPrimary"
-                android:text="🔍 Искать"
+                android:text="Искать"
                 android:textColor="@android:color/white"
                 app:cornerRadius="12dp" />
 
