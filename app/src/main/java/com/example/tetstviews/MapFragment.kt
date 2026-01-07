@@ -38,7 +38,23 @@ import com.yandex.runtime.Error
 import com.yandex.runtime.image.ImageProvider
 import com.yandex.runtime.network.NetworkError
 import com.yandex.runtime.network.RemoteError
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.content.Intent
+import android.net.Uri
+import android.widget.*
+import androidx.core.view.isVisible
+import com.yandex.mapkit.search.BusinessObjectMetadata
+import com.yandex.mapkit.search.Phone
+import kotlin.collections.forEach
 
+
+//private val SearchLink?.url: Any
+//private val Phone.formatted: Any
+//private val Any?.reviewsCount: Any
+//private val Any?.value: Any
+//private val BusinessObjectMetadata?.rating: Any
+//private val Any?.text: Any
+//private val BusinessObjectMetadata?.hours: Any
 
 class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListener {
 
@@ -53,8 +69,10 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
     private lateinit var chipPetShops: Chip
     private lateinit var btnSearch: MaterialButton
 
+
     private var userLocation: Point? = null
     private var currentSearchSession: Session? = null
+
 
     // Список для хранения меток
     private val placemarks = mutableListOf<PlacemarkMapObject>()
@@ -162,7 +180,7 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
         val mapKit = MapKitFactory.getInstance()
         userLocationLayer = mapKit.createUserLocationLayer(mapView.mapWindow)
         userLocationLayer.isVisible = true
-        userLocationLayer.isHeadingEnabled = true
+    //userLocationLayer.isHeadingEnabled = true
         userLocationLayer.setObjectListener(this)
     }
 
@@ -260,9 +278,31 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
             val name = item.obj?.name ?: "Без названия"
             val address = item.obj?.descriptionText ?: ""
 
+            // Извлекаем BusinessObjectMetadata
+            val metadata = item.obj?.metadataContainer?.getItem(BusinessObjectMetadata::class.java)
+
+            // Часы работы
+            val workingHours = null
+            val rating = null
+            val ratingsCount = null
+            val phones = emptyList<String>()
+            val website = null
+
             point?.let {
-                addPlacemark(it, name, address, isVetClinic)
+                val placemarkData = PlacemarkData(
+                    name = name,
+                    address = address,
+                    isVetClinic = isVetClinic,
+                    workingHours = workingHours as String?,
+                    rating = rating as Double?,
+                    ratingsCount = ratingsCount as Int?,
+                    phones = phones as List<String>,
+                    website = website as String?,
+                    point = it
+                )
+                addPlacemark(it, placemarkData)
             }
+
         }
 
         if (response.collection.children.isEmpty()) {
@@ -273,6 +313,7 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
             ).show()
         }
     }
+
 
     private fun handleSearchError(error: Error) {
         val errorMessage = when (error) {
@@ -286,15 +327,9 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
 
     private fun addPlacemark(
         point: Point,
-        name: String,
-        address: String,
-        isVetClinic: Boolean
+        data: PlacemarkData
     ) {
-        val imageResource = if (isVetClinic) {
-            R.drawable.ic_map
-        } else {
-            R.drawable.ic_map
-        }
+        val imageResource = R.drawable.ic_map
 
         val placemark = mapObjects.addPlacemark(point).apply {
             setIcon(ImageProvider.fromResource(requireContext(), imageResource))
@@ -304,13 +339,13 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
             })
 
             // Добавляем данные для отображения
-            userData = PlacemarkData(name, address, isVetClinic)
+            userData = data
         }
 
         // Обработка нажатия на метку
         placemark.addTapListener { mapObject, _ ->
-            val data = mapObject.userData as? PlacemarkData
-            data?.let {
+            val placemarkData = mapObject.userData as? PlacemarkData
+            placemarkData?.let {
                 showPlaceInfo(it)
             }
             true
@@ -320,13 +355,129 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
     }
 
     private fun showPlaceInfo(data: PlacemarkData) {
-        val type = if (data.isVetClinic) "Ветклиника" else "Зоомагазин"
-        val message = "$type\n${data.name}\n${data.address}"
+        val bottomSheetDialog = BottomSheetDialog(requireContext())
+        val view = layoutInflater.inflate(R.layout.bottom_sheet_place_info, null)
+        bottomSheetDialog.setContentView(view)
 
-        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+        // Заполняем данные
+        val tvPlaceType = view.findViewById<TextView>(R.id.tvPlaceType)
+        val tvPlaceName = view.findViewById<TextView>(R.id.tvPlaceName)
+        val tvAddress = view.findViewById<TextView>(R.id.tvAddress)
+        val tvOpenStatus = view.findViewById<TextView>(R.id.tvOpenStatus)
+        val layoutRating = view.findViewById<LinearLayout>(R.id.layoutRating)
+        val tvRating = view.findViewById<TextView>(R.id.tvRating)
+        val ratingBar = view.findViewById<RatingBar>(R.id.ratingBar)
+        val tvRatingsCount = view.findViewById<TextView>(R.id.tvRatingsCount)
+        val layoutWorkingHours = view.findViewById<LinearLayout>(R.id.layoutWorkingHours)
+        val tvWorkingHours = view.findViewById<TextView>(R.id.tvWorkingHours)
+        val layoutPhones = view.findViewById<LinearLayout>(R.id.layoutPhones)
+        val containerPhones = view.findViewById<LinearLayout>(R.id.containerPhones)
+        val layoutWebsite = view.findViewById<LinearLayout>(R.id.layoutWebsite)
+        val tvWebsite = view.findViewById<TextView>(R.id.tvWebsite)
+        val btnCall = view.findViewById<MaterialButton>(R.id.btnCall)
+        val btnRoute = view.findViewById<MaterialButton>(R.id.btnRoute)
 
-        // Можно заменить на BottomSheet или AlertDialog для более красивого отображения
-        // showBottomSheetInfo(data)
+        // Тип и название
+        tvPlaceType.text = if (data.isVetClinic) "Ветеринарная клиника" else "Зоомагазин"
+        tvPlaceName.text = data.name
+        tvAddress.text = data.address
+
+        // Статус работы (упрощенная версия - всегда "Открыто" если есть часы работы)
+        if (data.workingHours != null) {
+            tvOpenStatus.text = "Открыто"
+            tvOpenStatus.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark))
+        } else {
+            tvOpenStatus.text = "Часы работы неизвестны"
+            tvOpenStatus.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.darker_gray))
+        }
+
+        // Рейтинг
+        if (data.rating != null) {
+            layoutRating.isVisible = true
+            tvRating.text = String.format("%.1f", data.rating)
+            ratingBar.rating = data.rating.toFloat()
+            if (data.ratingsCount != null && data.ratingsCount > 0) {
+                tvRatingsCount.text = "(${data.ratingsCount} ${getRatingText(data.ratingsCount)})"
+            } else {
+                tvRatingsCount.text = ""
+            }
+        } else {
+            layoutRating.isVisible = false
+        }
+
+        // Часы работы
+        if (!data.workingHours.isNullOrEmpty()) {
+            layoutWorkingHours.isVisible = true
+            tvWorkingHours.text = data.workingHours
+        } else {
+            layoutWorkingHours.isVisible = false
+        }
+
+        // Телефоны
+        if (data.phones.isNotEmpty()) {
+            layoutPhones.isVisible = true
+            containerPhones.removeAllViews()
+            data.phones.forEach { phone ->
+                val phoneView = layoutInflater.inflate(R.layout.item_phone, containerPhones, false)
+                val tvPhone = phoneView.findViewById<TextView>(R.id.tvPhone)
+                tvPhone.text = phone
+                phoneView.setOnClickListener {
+                    val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
+                    startActivity(intent)
+                }
+                containerPhones.addView(phoneView)
+            }
+        } else {
+            layoutPhones.isVisible = false
+        }
+
+        // Сайт
+        if (!data.website.isNullOrEmpty()) {
+            layoutWebsite.isVisible = true
+            tvWebsite.text = data.website
+            tvWebsite.setOnClickListener {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(data.website))
+                startActivity(intent)
+            }
+        } else {
+            layoutWebsite.isVisible = false
+        }
+
+        // Кнопка звонка
+        if (data.phones.isNotEmpty()) {
+            btnCall.isVisible = true
+            btnCall.setOnClickListener {
+                val phone = data.phones.first()
+                val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone"))
+                startActivity(intent)
+            }
+        } else {
+            btnCall.isVisible = false
+        }
+
+        // Кнопка маршрута
+        btnRoute.setOnClickListener {
+            val uri = Uri.parse("yandexnavi://build_route?lat_to=${data.point.latitude}&lon_to=${data.point.longitude}")
+            val intent = Intent(Intent.ACTION_VIEW, uri)
+            if (intent.resolveActivity(requireContext().packageManager) != null) {
+                startActivity(intent)
+            } else {
+                // Fallback на Яндекс.Карты
+                val mapsUri = Uri.parse("https://yandex.ru/maps/?pt=${data.point.longitude},${data.point.latitude}&z=15")
+                val mapsIntent = Intent(Intent.ACTION_VIEW, mapsUri)
+                startActivity(mapsIntent)
+            }
+        }
+
+        bottomSheetDialog.show()
+    }
+
+    private fun getRatingText(count: Int): String {
+        return when {
+            count % 10 == 1 && count % 100 != 11 -> "отзыв"
+            count % 10 in 2..4 && count % 100 !in 12..14 -> "отзыва"
+            else -> "отзывов"
+        }
     }
 
     private fun clearPlacemarks() {
@@ -388,11 +539,21 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
     data class PlacemarkData(
         val name: String,
         val address: String,
-        val isVetClinic: Boolean
+        val isVetClinic: Boolean,
+        val workingHours: String? = null,
+        val rating: Double? = null,
+        val ratingsCount: Int? = null,
+        val phones: List<String> = emptyList(),
+        val website: String? = null,
+        val point: Point
     )
 
     companion object {
         @JvmStatic
         fun newInstance() = MapFragment()
     }
+}
+
+private fun Any.isNotBlank(): Boolean {
+    TODO("Not yet implemented")
 }
