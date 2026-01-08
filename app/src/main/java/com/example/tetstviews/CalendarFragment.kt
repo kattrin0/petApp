@@ -34,7 +34,7 @@ class CalendarFragment : Fragment() {
     private lateinit var btnAddEvent: Button
     private lateinit var tvNoEvents: TextView
 
-    private lateinit var adapter: EventAdapter
+    private lateinit var adapter: GroupedEventAdapter
     private lateinit var sharedPreferences: SharedPreferences
     private val gson = Gson()
 
@@ -79,15 +79,22 @@ class CalendarFragment : Fragment() {
 
         showTodayDate()
         loadEvents()
-        removePassedEvents()
+        removePassedEvents() // Удаляем прошедшие события
 
-        adapter = EventAdapter()
+        adapter = GroupedEventAdapter()
         listView.adapter = adapter
 
         btnAddEvent.setOnClickListener {
             showAddDialog()
         }
 
+        updateEventsList()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadEvents()
+        removePassedEvents()
         updateEventsList()
     }
 
@@ -124,7 +131,6 @@ class CalendarFragment : Fragment() {
                 val type = object : TypeToken<List<Event>>() {}.type
                 val savedEvents: List<Event> = gson.fromJson(json, type)
                 eventsList.clear()
-                // Миграция старых событий - добавляем значения по умолчанию
                 savedEvents.forEach { event ->
                     eventsList.add(event.copy(
                         description = event.description ?: "",
@@ -134,7 +140,6 @@ class CalendarFragment : Fragment() {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                // Очищаем некорректные данные
                 eventsList.clear()
                 saveEvents()
             }
@@ -148,6 +153,7 @@ class CalendarFragment : Fragment() {
             .apply()
     }
 
+    // Удаляем полностью прошедшие события (вчерашние и ранее)
     private fun removePassedEvents() {
         val calendar = Calendar.getInstance()
         calendar.set(Calendar.HOUR_OF_DAY, 0)
@@ -157,10 +163,14 @@ class CalendarFragment : Fragment() {
         val todayStart = calendar.timeInMillis
 
         val eventsToRemove = eventsList.filter { event ->
-            event.dateMillis < todayStart && event.isCompleted
+            // Удаляем события, которые были до сегодня
+            event.dateMillis < todayStart
         }
 
         if (eventsToRemove.isNotEmpty()) {
+            eventsToRemove.forEach { event ->
+                cancelNotification(event)
+            }
             eventsList.removeAll(eventsToRemove.toSet())
             saveEvents()
         }
@@ -336,13 +346,16 @@ class CalendarFragment : Fragment() {
         now.set(Calendar.MILLISECOND, 0)
         val todayStart = now.timeInMillis
 
+        // Фильтруем только актуальные события (сегодня и позже)
         val activeEvents = eventsList.filter {
-            it.dateMillis >= todayStart || !it.isCompleted
+            it.dateMillis >= todayStart
         }
 
+        // Сортируем по дате, потом по времени
         val sorted = activeEvents.sortedWith(
             compareBy({ it.isCompleted }, { it.dateMillis }, { it.timeHour }, { it.timeMinute })
         )
+
         adapter.updateList(sorted)
 
         if (sorted.isEmpty()) {
@@ -383,14 +396,14 @@ class CalendarFragment : Fragment() {
 
     private fun showEventDetails(event: Event) {
         val message = buildString {
-            append(" ${event.date}")
+            append("📅 ${event.date}")
             val time = event.time ?: ""
             if (time.isNotEmpty()) {
-                append("\n $time")
+                append("\n⏰ $time")
             }
             val desc = event.description ?: ""
             if (desc.isNotEmpty()) {
-                append("\n\n $desc")
+                append("\n\n📝 $desc")
             }
             append("\n\nСтатус: ${if (event.isCompleted) "✅ Выполнено" else "⏳ Ожидает"}")
         }
@@ -405,13 +418,56 @@ class CalendarFragment : Fragment() {
             .show()
     }
 
-    // ===== ИСПРАВЛЕННЫЙ АДАПТЕР С NULL-ПРОВЕРКАМИ =====
-    inner class EventAdapter : BaseAdapter() {
+    // Вспомогательные функции для определения дня
+    private fun isToday(dateMillis: Long): Boolean {
+        val today = Calendar.getInstance()
+        val eventDate = Calendar.getInstance().apply { timeInMillis = dateMillis }
+        return today.get(Calendar.YEAR) == eventDate.get(Calendar.YEAR) &&
+                today.get(Calendar.DAY_OF_YEAR) == eventDate.get(Calendar.DAY_OF_YEAR)
+    }
 
-        private var items: List<Event> = listOf()
+    private fun isTomorrow(dateMillis: Long): Boolean {
+        val tomorrow = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
+        val eventDate = Calendar.getInstance().apply { timeInMillis = dateMillis }
+        return tomorrow.get(Calendar.YEAR) == eventDate.get(Calendar.YEAR) &&
+                tomorrow.get(Calendar.DAY_OF_YEAR) == eventDate.get(Calendar.DAY_OF_YEAR)
+    }
 
-        fun updateList(newItems: List<Event>) {
-            items = newItems
+    private fun getDateLabel(dateMillis: Long): String {
+        return when {
+            isToday(dateMillis) -> "Сегодня"
+            isTomorrow(dateMillis) -> "Завтра"
+            else -> formatDate(dateMillis)
+        }
+    }
+
+    // ===== АДАПТЕР С ГРУППИРОВКОЙ ПО ДАТАМ =====
+    sealed class ListItem {
+        data class DateHeader(val date: String, val dateMillis: Long) : ListItem()
+        data class EventItem(val event: Event) : ListItem()
+    }
+
+    inner class GroupedEventAdapter : BaseAdapter() {
+
+        private var items: List<ListItem> = listOf()
+
+        private val VIEW_TYPE_HEADER = 0
+        private val VIEW_TYPE_EVENT = 1
+
+        fun updateList(events: List<Event>) {
+            val groupedItems = mutableListOf<ListItem>()
+            var lastDate = ""
+
+            events.forEach { event ->
+                val dateLabel = getDateLabel(event.dateMillis)
+                if (dateLabel != lastDate) {
+                    groupedItems.add(ListItem.DateHeader(dateLabel, event.dateMillis))
+                    lastDate = dateLabel
+                }
+                groupedItems.add(ListItem.EventItem(event))
+            }
+
+            items = groupedItems
             notifyDataSetChanged()
         }
 
@@ -419,15 +475,61 @@ class CalendarFragment : Fragment() {
 
         override fun getItem(position: Int) = items[position]
 
-        override fun getItemId(position: Int) = items[position].id
+        override fun getItemId(position: Int): Long {
+            return when (val item = items[position]) {
+                is ListItem.DateHeader -> item.dateMillis
+                is ListItem.EventItem -> item.event.id
+            }
+        }
+
+        override fun getViewTypeCount() = 2
+
+        override fun getItemViewType(position: Int): Int {
+            return when (items[position]) {
+                is ListItem.DateHeader -> VIEW_TYPE_HEADER
+                is ListItem.EventItem -> VIEW_TYPE_EVENT
+            }
+        }
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+            return when (val item = items[position]) {
+                is ListItem.DateHeader -> getHeaderView(item, convertView, parent)
+                is ListItem.EventItem -> getEventView(item.event, convertView, parent)
+            }
+        }
+
+        private fun getHeaderView(header: ListItem.DateHeader, convertView: View?, parent: ViewGroup?): View {
             val view = convertView ?: LayoutInflater.from(context)
-                .inflate(R.layout.item_event, parent, false)
+                .inflate(R.layout.item_date_header, parent, false)
 
-            val event = items[position]
+            val tvDateHeader = view.findViewById<TextView>(R.id.tvDateHeader)
+            val ivDateIcon = view.findViewById<ImageView>(R.id.ivDateIcon)
 
-            // Безопасное получение View с null-проверками
+            tvDateHeader?.text = header.date
+
+            // Меняем иконку в зависимости от дня
+            when (header.date) {
+                "Сегодня" -> {
+                    ivDateIcon?.setImageResource(R.drawable.ic_calendar1)
+                    tvDateHeader?.setTextColor(ContextCompat.getColor(requireContext(), R.color.greenPrimary))
+                }
+                "Завтра" -> {
+                    ivDateIcon?.setImageResource(R.drawable.ic_calendar1)
+                    tvDateHeader?.setTextColor(ContextCompat.getColor(requireContext(), R.color.orangeLight))
+                }
+                else -> {
+                    ivDateIcon?.setImageResource(R.drawable.ic_calendar1)
+                    tvDateHeader?.setTextColor(ContextCompat.getColor(requireContext(), R.color.grey))
+                }
+            }
+
+            return view
+        }
+
+        private fun getEventView(event: Event, convertView: View?, parent: ViewGroup?): View {
+            val view = convertView?.takeIf { it.findViewById<TextView>(R.id.tvEventTitle) != null }
+                ?: LayoutInflater.from(context).inflate(R.layout.item_event, parent, false)
+
             val tvEventTitle = view.findViewById<TextView>(R.id.tvEventTitle)
             val tvEventDate = view.findViewById<TextView>(R.id.tvEventDate)
             val tvEventTime = view.findViewById<TextView>(R.id.tvEventTime)
@@ -435,22 +537,21 @@ class CalendarFragment : Fragment() {
             val checkboxComplete = view.findViewById<CheckBox>(R.id.checkboxComplete)
             val btnDelete = view.findViewById<ImageButton>(R.id.btnDelete)
 
-            // Установка значений с null-проверками
             tvEventTitle?.text = event.title ?: ""
-            tvEventDate?.text = event.date ?: ""
 
-            // Время - безопасная проверка
+            // Скрываем дату в элементе, т.к. она уже показана в заголовке
+            tvEventDate?.visibility = View.GONE
+
             val timeValue = event.time ?: ""
             if (tvEventTime != null) {
                 if (timeValue.isNotEmpty()) {
                     tvEventTime.visibility = View.VISIBLE
-                    tvEventTime.text = " $timeValue"
+                    tvEventTime.text = "⏰ $timeValue"
                 } else {
                     tvEventTime.visibility = View.GONE
                 }
             }
 
-            // Описание - безопасная проверка
             val descValue = event.description ?: ""
             if (tvEventDescription != null) {
                 if (descValue.isNotEmpty()) {
@@ -461,7 +562,6 @@ class CalendarFragment : Fragment() {
                 }
             }
 
-            // Чекбокс - безопасная проверка
             if (checkboxComplete != null) {
                 checkboxComplete.setOnCheckedChangeListener(null)
                 checkboxComplete.isChecked = event.isCompleted
@@ -470,16 +570,13 @@ class CalendarFragment : Fragment() {
                 }
             }
 
-            // Стиль для выполненных событий
             if (tvEventTitle != null) {
                 if (event.isCompleted) {
                     tvEventTitle.paintFlags = tvEventTitle.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
                     tvEventTitle.alpha = 0.5f
-                    tvEventDate?.alpha = 0.5f
                 } else {
                     tvEventTitle.paintFlags = tvEventTitle.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
                     tvEventTitle.alpha = 1f
-                    tvEventDate?.alpha = 1f
                 }
             }
 

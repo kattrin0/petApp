@@ -1,17 +1,15 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="android:windowBackground">@drawable/screensaver</item>
-        <item name="android:windowFullscreen">true</item>
+        <item name="windowSplashScreenBackground">@color/greenPrimary</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_paw0</item>
         <item name="postSplashScreenTheme">@style/Base.Theme.TetstViews</item>
-
     </style>
     <!-- //////////////////////////////////////////////////////////////////////////////////-->
     <!-- Стиль для TextInputLayout  -->
     <style name="Theme.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="boxBackgroundColor">@android:color/white</item>
         <item name="boxStrokeColor">@color/orangeLight</item>
-        <!-- Закругления (если нужно — можно убрать, если задаёте в XML) -->
         <item name="boxCornerRadiusTopStart">12dp</item>
         <item name="boxCornerRadiusTopEnd">12dp</item>
         <item name="boxCornerRadiusBottomStart">12dp</item>

@@ -34,7 +34,8 @@
             android:focusable="true"
             app:cardBackgroundColor="#FFFFFF"
             app:cardCornerRadius="16dp"
-            app:cardElevation="4dp">
+            app:cardElevation="4dp"
+            app:rippleColor="@color/greenPrimary">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -48,9 +49,10 @@
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:background="@drawable/circle_orange"
+                    android:clipToOutline="true"
                     android:padding="12dp"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/ic_paw" />
+                    android:src="@drawable/ic_paw1" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -88,11 +90,53 @@
 
                 </LinearLayout>
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_chevron_right"
-                    app:tint="#CCCCCC" />
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Секция: События на сегодня -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="События на сегодня"
+            android:textColor="#333333"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardTodayEvents"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Сообщение "нет событий" -->
+                <TextView
+                    android:id="@+id/tvNoTodayEvents"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="На сегодня событий нет "
+                    android:textColor="#888888"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+
+                <!-- Список событий -->
+                <LinearLayout
+                    android:id="@+id/llTodayEventsList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
 
             </LinearLayout>
 
@@ -113,6 +157,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
+            android:layout_marginBottom="16dp"
             app:cardBackgroundColor="@color/beige"
             app:cardCornerRadius="12dp"
             app:cardElevation="2dp">
@@ -157,56 +202,6 @@
                         android:textSize="13sp" />
 
                 </LinearLayout>
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Секция: Фотолента  -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text=" Фотолента"
-            android:textColor="#333333"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardGalleryPlaceholder"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#FFFFFF"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            app:strokeColor="#E0E0E0"
-            app:strokeWidth="1dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="32dp">
-
-                <ImageView
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:src="@drawable/ic_camera"
-                    app:tint="#CCCCCC" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:gravity="center"
-                    android:text="Здесь будет фотолента"
-                    android:textColor="#888888"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-
 
             </LinearLayout>
 

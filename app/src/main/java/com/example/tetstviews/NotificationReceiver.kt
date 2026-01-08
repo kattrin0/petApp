@@ -27,7 +27,7 @@ class NotificationReceiver : BroadcastReceiver() {
         )
 
         val notification = NotificationCompat.Builder(context, CalendarFragment.CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_paw)
+            .setSmallIcon(R.drawable.ic_paw1)
             .setContentTitle("🐾 $title")
             .setContentText(if (description.isNotEmpty()) description else "Через 15 минут!")
             .setStyle(NotificationCompat.BigTextStyle().bigText(

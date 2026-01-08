@@ -1,4 +1,3 @@
-// Event.kt
 package com.example.tetstviews
 
 data class Event(

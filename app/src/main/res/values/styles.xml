@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <style name="textToolbar" parent="TextAppearance.AppCompat">
         <item name="android:textSize">20sp</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:fontFamily">@font/opensans_italic</item>
+        <item name="android:fontFamily">@font/gravitas_one</item>
         <item name="android:gravity">center</item>
     </style>
-
 </resources>

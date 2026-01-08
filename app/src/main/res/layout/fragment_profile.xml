@@ -106,7 +106,7 @@
                         android:id="@+id/etPetName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:drawableStart="@drawable/ic_paw"
+                        android:drawableStart="@drawable/ic_paw1"
                         android:drawablePadding="8dp"
                         android:hint="Кличка питомца"
                         android:inputType="textPersonName"
@@ -131,7 +131,7 @@
                         android:id="@+id/actvBreed"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:drawableStart="@drawable/ic_paw"
+                        android:drawableStart="@drawable/ic_paw1"
                         android:drawablePadding="8dp"
                         android:hint="Порода"
                         android:inputType="none" />

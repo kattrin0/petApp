@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingVertical="8dp">
+
+    <!-- Индикатор -->
+    <View
+        android:layout_width="4dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="12dp"
+        android:background="@color/greenPrimary" />
+
+    <!-- Время -->
+    <TextView
+        android:id="@+id/tvEventTime"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:text="09:00"
+        android:textColor="@color/greenPrimary"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <!-- Название события -->
+    <TextView
+        android:id="@+id/tvEventTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Название события"
+        android:textColor="#333333"
+        android:textSize="14sp" />
+
+</LinearLayout>
