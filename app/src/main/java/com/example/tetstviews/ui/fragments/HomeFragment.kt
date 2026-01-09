@@ -1,7 +1,6 @@
-package com.example.tetstviews
+package com.example.tetstviews.ui.fragments
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,7 +10,13 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.Observer
+import com.example.tetstviews.R
+import com.example.tetstviews.domain.model.Event
+import com.example.tetstviews.domain.model.PetProfile
+import com.example.tetstviews.ui.viewmodel.HomeViewModel
 import com.google.android.material.card.MaterialCardView
 import java.io.File
 import java.io.FileInputStream
@@ -20,7 +25,7 @@ import java.util.*
 import kotlin.random.Random
 
 class HomeFragment : Fragment() {
-    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var viewModel: HomeViewModel
 
     private lateinit var tvTipEmoji: TextView
     private lateinit var tvTipTitle: TextView
@@ -30,6 +35,12 @@ class HomeFragment : Fragment() {
     private lateinit var cardTodayEvents: MaterialCardView
     private lateinit var llTodayEventsList: LinearLayout
     private lateinit var tvNoTodayEvents: TextView
+
+    // Элементы карточки питомца
+    private lateinit var tvPetName: TextView
+    private lateinit var tvPetBreed: TextView
+    private lateinit var tvPetAge: TextView
+    private lateinit var ivPetPhoto: ImageView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,91 +52,83 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        sharedPreferences = requireContext().getSharedPreferences("pet_profile_prefs", Context.MODE_PRIVATE)
+        viewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
+        initViews(view)
+        setupObservers()
+        viewModel.refreshData()
+        loadRandomTip()
+    }
 
+    private fun initViews(view: View) {
         // Инициализация элементов совета
         tvTipEmoji = view.findViewById(R.id.tvTipEmoji)
         tvTipTitle = view.findViewById(R.id.tvTipTitle)
         tvTipText = view.findViewById(R.id.tvTipText)
 
         // Инициализация элементов карточки питомца
-        val tvPetName = view.findViewById<TextView>(R.id.tvPetName)
-        val tvPetBreed = view.findViewById<TextView>(R.id.tvPetBreed)
-        val tvPetAge = view.findViewById<TextView>(R.id.tvPetAge)
-        val ivPetPhoto = view.findViewById<ImageView>(R.id.ivPetPhoto)
-        val petCard = view.findViewById<MaterialCardView>(R.id.petCard)
+        tvPetName = view.findViewById(R.id.tvPetName)
+        tvPetBreed = view.findViewById(R.id.tvPetBreed)
+        tvPetAge = view.findViewById(R.id.tvPetAge)
+        ivPetPhoto = view.findViewById(R.id.ivPetPhoto)
 
         // Инициализация элементов событий на сегодня
         cardTodayEvents = view.findViewById(R.id.cardTodayEvents)
         llTodayEventsList = view.findViewById(R.id.llTodayEventsList)
         tvNoTodayEvents = view.findViewById(R.id.tvNoTodayEvents)
-
-        // Загрузка данных
-        loadPetData(tvPetName, tvPetBreed, tvPetAge, ivPetPhoto)
-        loadRandomTip()
-        loadTodayEvents()
-
     }
 
-    private fun loadPetData(
-        tvPetName: TextView,
-        tvPetBreed: TextView,
-        tvPetAge: TextView,
-        ivPetPhoto: ImageView
-    ) {
-        with(sharedPreferences) {
-            // Имя
-            getString("pet_name", null)?.let {
-                tvPetName.text = if (it.isNotBlank()) it else "Имя не указано"
-            } ?: run {
-                tvPetName.text = "Имя не указано"
-            }
+    private fun setupObservers() {
+        viewModel.petProfile.observe(viewLifecycleOwner, Observer { profile ->
+            updatePetProfile(profile)
+        })
 
-            // Порода
-            getString("pet_breed", null)?.let {
-                tvPetBreed.text = if (it.isNotBlank()) it else "Порода не указана"
-            } ?: run {
-                tvPetBreed.text = "Порода не указана"
-            }
+        viewModel.todayEvents.observe(viewLifecycleOwner, Observer { events ->
+            updateTodayEvents(events)
+        })
+    }
 
-            // Дата рождения → возраст
-            getString("pet_birth_date", null)?.let { birthDateStr ->
-                try {
-                    val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-                    val birthDate = sdf.parse(birthDateStr)
-                    if (birthDate != null) {
-                        val now = Calendar.getInstance()
-                        val birth = Calendar.getInstance().apply { time = birthDate }
-                        var age = now.get(Calendar.YEAR) - birth.get(Calendar.YEAR)
-                        if (now.get(Calendar.DAY_OF_YEAR) < birth.get(Calendar.DAY_OF_YEAR)) age--
+    private fun updatePetProfile(profile: PetProfile) {
+        // Имя
+        tvPetName.text = if (profile.name.isNotBlank()) profile.name else "Имя не указано"
 
-                        val ageText = when {
-                            age % 10 == 1 && age % 100 != 11 -> "$age год"
-                            age % 10 in 2..4 && age % 100 !in 12..14 -> "$age года"
-                            age >= 5 || age == 0 -> "$age лет"
-                            else -> "$age лет"
-                        }
-                        tvPetAge.text = ageText
-                        tvPetAge.visibility = View.VISIBLE
+        // Порода
+        tvPetBreed.text = if (profile.breed.isNotBlank()) profile.breed else "Порода не указана"
+
+        // Дата рождения → возраст
+        if (profile.birthDate.isNotBlank()) {
+            try {
+                val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+                val birthDate = sdf.parse(profile.birthDate)
+                if (birthDate != null) {
+                    val now = Calendar.getInstance()
+                    val birth = Calendar.getInstance().apply { time = birthDate }
+                    var age = now.get(Calendar.YEAR) - birth.get(Calendar.YEAR)
+                    if (now.get(Calendar.DAY_OF_YEAR) < birth.get(Calendar.DAY_OF_YEAR)) age--
+
+                    val ageText = when {
+                        age % 10 == 1 && age % 100 != 11 -> "$age год"
+                        age % 10 in 2..4 && age % 100 !in 12..14 -> "$age года"
+                        age >= 5 || age == 0 -> "$age лет"
+                        else -> "$age лет"
                     }
-                } catch (e: Exception) {
-                    tvPetAge.visibility = View.GONE
+                    tvPetAge.text = ageText
+                    tvPetAge.visibility = View.VISIBLE
                 }
-            } ?: run {
+            } catch (e: Exception) {
                 tvPetAge.visibility = View.GONE
             }
-            loadPetPhoto(ivPetPhoto)
+        } else {
+            tvPetAge.visibility = View.GONE
         }
+
+        loadPetPhoto(profile.photoPath)
     }
 
-    private fun loadPetPhoto(ivPetPhoto: ImageView) {
-        val photoPath = sharedPreferences.getString("pet_photo_path", null)
-
+    private fun loadPetPhoto(photoPath: String?) {
         if (photoPath != null) {
             try {
                 val file = File(photoPath)
                 if (file.exists() && file.length() > 0) {
-                    // Используем FileInputStream для надежной загрузки
                     FileInputStream(file).use { inputStream ->
                         val bitmap = BitmapFactory.decodeStream(inputStream)
                         if (bitmap != null) {
@@ -147,33 +150,25 @@ class HomeFragment : Fragment() {
         ivPetPhoto.setPadding(12, 12, 12, 12)
     }
 
-    private fun loadTodayEvents() {
-        val todayFormat = SimpleDateFormat("d MMMM yyyy", Locale("ru"))
-        val todayString = todayFormat.format(Date())
-
-        // Получаем события на сегодня из CalendarFragment
-        val todayEvents = CalendarFragment.eventsList.filter {
-            it.date == todayString && !it.isCompleted
-        }.sortedBy { it.timeHour * 60 + it.timeMinute }
-
+    private fun updateTodayEvents(events: List<Event>) {
         llTodayEventsList.removeAllViews()
 
-        if (todayEvents.isEmpty()) {
+        if (events.isEmpty()) {
             tvNoTodayEvents.visibility = View.VISIBLE
             llTodayEventsList.visibility = View.GONE
         } else {
             tvNoTodayEvents.visibility = View.GONE
             llTodayEventsList.visibility = View.VISIBLE
 
-            todayEvents.take(5).forEach { event -> // Показываем максимум 5 событий
+            events.take(5).forEach { event ->
                 val eventView = createTodayEventView(event)
                 llTodayEventsList.addView(eventView)
             }
 
             // Если событий больше 5, показываем счетчик
-            if (todayEvents.size > 5) {
+            if (events.size > 5) {
                 val moreView = TextView(requireContext()).apply {
-                    text = "... и ещё ${todayEvents.size - 5}"
+                    text = "... и ещё ${events.size - 5}"
                     setTextColor(resources.getColor(R.color.grey, null))
                     textSize = 12f
                     setPadding(0, 8, 0, 0)
@@ -200,11 +195,6 @@ class HomeFragment : Fragment() {
 
         tvEventTitle.text = event.title
 
-//        // При нажатии переходим в календарь
-//        view.setOnClickListener {
-//            findNavController().navigate(R.id.action_homeFragment_to_calendarFragment)
-//        }
-
         return view
     }
 
@@ -223,14 +213,7 @@ class HomeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        view?.let { rootView ->
-            val tvPetName = rootView.findViewById<TextView>(R.id.tvPetName)
-            val tvPetBreed = rootView.findViewById<TextView>(R.id.tvPetBreed)
-            val tvPetAge = rootView.findViewById<TextView>(R.id.tvPetAge)
-            val ivPetPhoto = rootView.findViewById<ImageView>(R.id.ivPetPhoto)
-            loadPetData(tvPetName, tvPetBreed, tvPetAge, ivPetPhoto)
-            loadTodayEvents()
-        }
+        viewModel.refreshData()
     }
 
     companion object {
@@ -238,3 +221,4 @@ class HomeFragment : Fragment() {
         fun newInstance() = HomeFragment()
     }
 }
+

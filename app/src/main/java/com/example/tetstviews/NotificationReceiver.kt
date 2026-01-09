@@ -7,6 +7,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
+import com.example.tetstviews.data.service.NotificationService
+import com.example.tetstviews.ui.MainActivity
 
 class NotificationReceiver : BroadcastReceiver() {
 
@@ -26,7 +28,7 @@ class NotificationReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(context, CalendarFragment.CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, NotificationService.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_paw1)
             .setContentTitle("🐾 $title")
             .setContentText(if (description.isNotEmpty()) description else "Через 15 минут!")

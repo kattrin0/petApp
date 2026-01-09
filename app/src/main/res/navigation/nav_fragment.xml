@@ -7,22 +7,22 @@
 
     <fragment
         android:id="@+id/calendarFragment"
-        android:name="com.example.tetstviews.CalendarFragment"
+        android:name="com.example.tetstviews.ui.fragments.CalendarFragment"
         android:label="Calendar"
         tools:layout="@layout/fragment_calendar" />
     <fragment
         android:id="@+id/mapFragment"
-        android:name="com.example.tetstviews.MapFragment"
+        android:name="com.example.tetstviews.ui.fragments.MapFragment"
         android:label="Map"
         tools:layout="@layout/fragment_map" />
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.example.tetstviews.HomeFragment"
+        android:name="com.example.tetstviews.ui.fragments.HomeFragment"
         android:label="Home"
         tools:layout="@layout/fragment_home" />
     <fragment
         android:id="@+id/profileFragment"
-        android:name="com.example.tetstviews.ProfileFragment"
+        android:name="com.example.tetstviews.ui.fragments.ProfileFragment"
         android:label="Profile"
         tools:layout="@layout/fragment_profile" />
 </navigation>

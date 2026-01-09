@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/greyPrimary"
     android:fillViewport="true"
-    tools:context=".HomeFragment">
+    tools:context=".ui.fragments.HomeFragment">
 
     <LinearLayout
         android:layout_width="match_parent"

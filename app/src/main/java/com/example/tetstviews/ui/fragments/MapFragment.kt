@@ -1,34 +1,37 @@
-package com.example.tetstviews
+package com.example.tetstviews.ui.fragments
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.yandex.mapkit.MapKitFactory
-
-
-import android.Manifest
-import android.content.pm.PackageManager
-import android.graphics.Color
-
-import android.widget.Toast
+import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-
+import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.ViewModelProvider
+import com.example.tetstviews.R
+import com.example.tetstviews.domain.model.PlacemarkData
+import com.example.tetstviews.ui.viewmodel.MapViewModel
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.yandex.mapkit.Animation
-
+import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.layers.ObjectEvent
 import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.map.IconStyle
 import com.yandex.mapkit.map.MapObjectCollection
 import com.yandex.mapkit.map.PlacemarkMapObject
-import com.yandex.mapkit.map.VisibleRegionUtils
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.mapkit.search.*
 import com.yandex.mapkit.user_location.UserLocationLayer
@@ -38,23 +41,7 @@ import com.yandex.runtime.Error
 import com.yandex.runtime.image.ImageProvider
 import com.yandex.runtime.network.NetworkError
 import com.yandex.runtime.network.RemoteError
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import android.content.Intent
-import android.net.Uri
-import android.widget.*
-import androidx.core.view.isVisible
 import com.yandex.mapkit.search.BusinessObjectMetadata
-import com.yandex.mapkit.search.Phone
-import kotlin.collections.forEach
-
-
-//private val SearchLink?.url: Any
-//private val Phone.formatted: Any
-//private val Any?.reviewsCount: Any
-//private val Any?.value: Any
-//private val BusinessObjectMetadata?.rating: Any
-//private val Any?.text: Any
-//private val BusinessObjectMetadata?.hours: Any
 
 class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListener {
 
@@ -69,12 +56,8 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
     private lateinit var chipPetShops: Chip
     private lateinit var btnSearch: MaterialButton
 
-
-    private var userLocation: Point? = null
+    private lateinit var viewModel: MapViewModel
     private var currentSearchSession: Session? = null
-
-
-    // Список для хранения меток
     private val placemarks = mutableListOf<PlacemarkMapObject>()
 
     private val locationPermissionLauncher = registerForActivityResult(
@@ -109,9 +92,11 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        viewModel = ViewModelProvider(requireActivity())[MapViewModel::class.java]
         initViews(view)
         setupMap()
         setupClickListeners()
+        setupObservers()
         checkLocationPermission()
     }
 
@@ -125,35 +110,32 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
     }
 
     private fun setupMap() {
-        // Инициализация SearchManager
         searchManager = SearchFactory.getInstance().createSearchManager(SearchManagerType.COMBINED)
-
-        // Получаем коллекцию объектов карты
         mapObjects = mapView.map.mapObjects.addCollection()
-
-        // Начальная позиция (Воронеж)
         showCity(Point(51.660781, 39.200296), 12.0f)
     }
 
     private fun setupClickListeners() {
-        // Кнопка "Моё местоположение"
         fabMyLocation.setOnClickListener {
             moveToUserLocation()
         }
 
-        // Кнопка поиска
         btnSearch.setOnClickListener {
             performSearch()
         }
 
-        // Обработка выбора чипов
-        chipVetClinics.setOnCheckedChangeListener { _, _ ->
-            // Можно добавить логику при изменении
-        }
+        chipVetClinics.setOnCheckedChangeListener { _, _ -> }
+        chipPetShops.setOnCheckedChangeListener { _, _ -> }
+    }
 
-        chipPetShops.setOnCheckedChangeListener { _, _ ->
-            // Можно добавить логику при изменении
-        }
+    private fun setupObservers() {
+        viewModel.userLocation.observe(viewLifecycleOwner, androidx.lifecycle.Observer { location ->
+            // Location updates handled in onObjectAdded/onObjectUpdated
+        })
+
+        viewModel.searchResults.observe(viewLifecycleOwner, androidx.lifecycle.Observer { results ->
+            updateSearchResults(results)
+        })
     }
 
     private fun checkLocationPermission() {
@@ -164,7 +146,6 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
             ) == PackageManager.PERMISSION_GRANTED -> {
                 enableUserLocation()
             }
-
             else -> {
                 locationPermissionLauncher.launch(
                     arrayOf(
@@ -180,19 +161,18 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
         val mapKit = MapKitFactory.getInstance()
         userLocationLayer = mapKit.createUserLocationLayer(mapView.mapWindow)
         userLocationLayer.isVisible = true
-    //userLocationLayer.isHeadingEnabled = true
         userLocationLayer.setObjectListener(this)
     }
 
     private fun moveToUserLocation() {
-        if (userLocation != null) {
+        val location = viewModel.userLocation.value
+        if (location != null) {
             mapView.map.move(
-                CameraPosition(userLocation!!, 15.0f, 0.0f, 0.0f),
+                CameraPosition(location, 15.0f, 0.0f, 0.0f),
                 Animation(Animation.Type.SMOOTH, 1.0f),
                 null
             )
         } else {
-            // Пробуем получить позицию из userLocationLayer
             val cameraPosition = userLocationLayer.cameraPosition()
             if (cameraPosition != null) {
                 mapView.map.move(
@@ -211,12 +191,9 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
     }
 
     private fun performSearch() {
-        // Очищаем предыдущие метки
         clearPlacemarks()
 
-        val searchPoint = userLocation ?: Point(51.660781, 39.200296)
-
-        // Проверяем, какие категории выбраны
+        val searchPoint = viewModel.userLocation.value ?: Point(51.660781, 39.200296)
         val searchQueries = mutableListOf<String>()
 
         if (chipVetClinics.isChecked) {
@@ -236,16 +213,11 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
             return
         }
 
-        // Выполняем поиск для каждой категории
         searchQueries.forEach { query ->
             searchNearby(query, searchPoint)
         }
 
-        Toast.makeText(
-            requireContext(),
-            "Поиск...",
-            Toast.LENGTH_SHORT
-        ).show()
+        Toast.makeText(requireContext(), "Поиск...", Toast.LENGTH_SHORT).show()
     }
 
     private fun searchNearby(query: String, point: Point) {
@@ -256,7 +228,7 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
 
         currentSearchSession = searchManager.submit(
             query,
-            VisibleRegionUtils.toPolygon(mapView.map.visibleRegion),
+            com.yandex.mapkit.map.VisibleRegionUtils.toPolygon(mapView.map.visibleRegion),
             searchOptions,
             object : Session.SearchListener {
                 override fun onSearchResponse(response: Response) {
@@ -272,38 +244,31 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
 
     private fun handleSearchResponse(response: Response, query: String) {
         val isVetClinic = query.contains("ветеринар")
+        val results = mutableListOf<PlacemarkData>()
 
         response.collection.children.forEach { item ->
             val point = item.obj?.geometry?.firstOrNull()?.point
             val name = item.obj?.name ?: "Без названия"
             val address = item.obj?.descriptionText ?: ""
 
-            // Извлекаем BusinessObjectMetadata
-            val metadata = item.obj?.metadataContainer?.getItem(BusinessObjectMetadata::class.java)
-
-            // Часы работы
-            val workingHours = null
-            val rating = null
-            val ratingsCount = null
-            val phones = emptyList<String>()
-            val website = null
-
             point?.let {
                 val placemarkData = PlacemarkData(
                     name = name,
                     address = address,
                     isVetClinic = isVetClinic,
-                    workingHours = workingHours as String?,
-                    rating = rating as Double?,
-                    ratingsCount = ratingsCount as Int?,
-                    phones = phones as List<String>,
-                    website = website as String?,
+                    workingHours = null,
+                    rating = null,
+                    ratingsCount = null,
+                    phones = emptyList(),
+                    website = null,
                     point = it
                 )
+                results.add(placemarkData)
                 addPlacemark(it, placemarkData)
             }
-
         }
+
+        viewModel.setSearchResults(results)
 
         if (response.collection.children.isEmpty()) {
             Toast.makeText(
@@ -314,21 +279,20 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
         }
     }
 
-
     private fun handleSearchError(error: Error) {
         val errorMessage = when (error) {
             is NetworkError -> "Ошибка сети. Проверьте подключение к интернету"
             is RemoteError -> "Ошибка сервера"
             else -> "Ошибка поиска"
         }
-
         Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
     }
 
-    private fun addPlacemark(
-        point: Point,
-        data: PlacemarkData
-    ) {
+    private fun updateSearchResults(results: List<PlacemarkData>) {
+        // Результаты уже добавлены на карту в handleSearchResponse
+    }
+
+    private fun addPlacemark(point: Point, data: PlacemarkData) {
         val imageResource = R.drawable.ic_map
 
         val placemark = mapObjects.addPlacemark(point).apply {
@@ -337,12 +301,9 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
                 scale = 0.8f
                 zIndex = 10f
             })
-
-            // Добавляем данные для отображения
             userData = data
         }
 
-        // Обработка нажатия на метку
         placemark.addTapListener { mapObject, _ ->
             val placemarkData = mapObject.userData as? PlacemarkData
             placemarkData?.let {
@@ -359,7 +320,6 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
         val view = layoutInflater.inflate(R.layout.bottom_sheet_place_info, null)
         bottomSheetDialog.setContentView(view)
 
-        // Заполняем данные
         val tvPlaceType = view.findViewById<TextView>(R.id.tvPlaceType)
         val tvPlaceName = view.findViewById<TextView>(R.id.tvPlaceName)
         val tvAddress = view.findViewById<TextView>(R.id.tvAddress)
@@ -377,12 +337,10 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
         val btnCall = view.findViewById<MaterialButton>(R.id.btnCall)
         val btnRoute = view.findViewById<MaterialButton>(R.id.btnRoute)
 
-        // Тип и название
         tvPlaceType.text = if (data.isVetClinic) "Ветеринарная клиника" else "Зоомагазин"
         tvPlaceName.text = data.name
         tvAddress.text = data.address
 
-        // Статус работы (упрощенная версия - всегда "Открыто" если есть часы работы)
         if (data.workingHours != null) {
             tvOpenStatus.text = "Открыто"
             tvOpenStatus.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark))
@@ -391,7 +349,6 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
             tvOpenStatus.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.darker_gray))
         }
 
-        // Рейтинг
         if (data.rating != null) {
             layoutRating.isVisible = true
             tvRating.text = String.format("%.1f", data.rating)
@@ -405,7 +362,6 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
             layoutRating.isVisible = false
         }
 
-        // Часы работы
         if (!data.workingHours.isNullOrEmpty()) {
             layoutWorkingHours.isVisible = true
             tvWorkingHours.text = data.workingHours
@@ -413,7 +369,6 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
             layoutWorkingHours.isVisible = false
         }
 
-        // Телефоны
         if (data.phones.isNotEmpty()) {
             layoutPhones.isVisible = true
             containerPhones.removeAllViews()
@@ -431,7 +386,6 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
             layoutPhones.isVisible = false
         }
 
-        // Сайт
         if (!data.website.isNullOrEmpty()) {
             layoutWebsite.isVisible = true
             tvWebsite.text = data.website
@@ -443,7 +397,6 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
             layoutWebsite.isVisible = false
         }
 
-        // Кнопка звонка
         if (data.phones.isNotEmpty()) {
             btnCall.isVisible = true
             btnCall.setOnClickListener {
@@ -455,14 +408,12 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
             btnCall.isVisible = false
         }
 
-        // Кнопка маршрута
         btnRoute.setOnClickListener {
             val uri = Uri.parse("yandexnavi://build_route?lat_to=${data.point.latitude}&lon_to=${data.point.longitude}")
             val intent = Intent(Intent.ACTION_VIEW, uri)
             if (intent.resolveActivity(requireContext().packageManager) != null) {
                 startActivity(intent)
             } else {
-                // Fallback на Яндекс.Карты
                 val mapsUri = Uri.parse("https://yandex.ru/maps/?pt=${data.point.longitude},${data.point.latitude}&z=15")
                 val mapsIntent = Intent(Intent.ACTION_VIEW, mapsUri)
                 startActivity(mapsIntent)
@@ -483,6 +434,7 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
     private fun clearPlacemarks() {
         mapObjects.clear()
         placemarks.clear()
+        viewModel.clearSearchResults()
     }
 
     private fun showCity(cityPoint: Point, zoom: Float = 12.0f) {
@@ -493,35 +445,26 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
         )
     }
 
-    // UserLocationObjectListener implementation
     override fun onObjectAdded(userLocationView: UserLocationView) {
-        userLocation = userLocationView.arrow.geometry
+        val location = userLocationView.arrow.geometry
+        viewModel.updateUserLocation(location)
 
-        // Настройка иконки пользователя (опционально)
         userLocationView.arrow.setIcon(
             ImageProvider.fromResource(requireContext(), R.drawable.ic_map)
         )
-
-        // Настройка точности определения
         userLocationView.accuracyCircle.fillColor = Color.argb(50, 76, 175, 80)
     }
 
-    override fun onObjectRemoved(userLocationView: UserLocationView) {
-        // Ничего не делаем
-    }
+    override fun onObjectRemoved(userLocationView: UserLocationView) {}
 
     override fun onObjectUpdated(userLocationView: UserLocationView, event: ObjectEvent) {
-        userLocation = userLocationView.arrow.geometry
+        val location = userLocationView.arrow.geometry
+        viewModel.updateUserLocation(location)
     }
 
-    // Session.SearchListener implementation (для основного класса)
-    override fun onSearchResponse(response: Response) {
-        // Используется в searchNearby с отдельным listener
-    }
+    override fun onSearchResponse(response: Response) {}
 
-    override fun onSearchError(error: Error) {
-        // Используется в searchNearby с отдельным listener
-    }
+    override fun onSearchError(error: Error) {}
 
     override fun onStart() {
         super.onStart()
@@ -535,25 +478,9 @@ class MapFragment : Fragment(), UserLocationObjectListener, Session.SearchListen
         mapView.onStop()
     }
 
-    // Data class для хранения информации о метке
-    data class PlacemarkData(
-        val name: String,
-        val address: String,
-        val isVetClinic: Boolean,
-        val workingHours: String? = null,
-        val rating: Double? = null,
-        val ratingsCount: Int? = null,
-        val phones: List<String> = emptyList(),
-        val website: String? = null,
-        val point: Point
-    )
-
     companion object {
         @JvmStatic
         fun newInstance() = MapFragment()
     }
 }
 
-private fun Any.isNotBlank(): Boolean {
-    TODO("Not yet implemented")
-}
